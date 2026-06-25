@@ -11,12 +11,25 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
+# CORS - Versión más robusta y explícita
+allowed_origins = [
+    "https://claustore.netlify.app",
+    "http://localhost:4200",
+    "http://localhost:3000",
+    "http://127.0.0.1:4200",
+]
+
+# Si ALLOWED_ORIGINS viene bien desde settings, lo usamos
+if hasattr(settings, 'ALLOWED_ORIGINS') and settings.ALLOWED_ORIGINS:
+    allowed_origins.extend([o for o in settings.ALLOWED_ORIGINS if o not in allowed_origins])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.ALLOWED_ORIGINS,
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
