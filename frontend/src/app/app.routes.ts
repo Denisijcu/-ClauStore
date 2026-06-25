@@ -25,6 +25,8 @@ export const routes: Routes = [
       { path: 'categories', loadComponent: () => import('./features/admin/admin.component').then(m => m.AdminCategoriesComponent) },
       { path: 'gallery', loadComponent: () => import('./features/admin/admin.component').then(m => m.AdminGalleryComponent) },
       { path: 'orders', loadComponent: () => import('./features/admin/admin.component').then(m => m.AdminOrdersComponent) },
+
+      { path: '**', loadComponent: () => import('./features/404/not-found.component').then(m => m.NotFoundComponent) },
     ]
   },
   { path: '**', redirectTo: '' }

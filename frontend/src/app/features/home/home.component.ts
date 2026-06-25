@@ -329,6 +329,41 @@ import { Product, Category, PromptResponse } from '../../core/models/models';
     @keyframes spin { to { transform: rotate(360deg); } }
     .empty-state { text-align: center; padding: 40px; color: #6b7280; .empty-icon { font-size: 40px; margin-bottom: 12px; } h3 { font-size: 16px; color: #1a1a2e; } }
     .spin { animation: spin 1s linear infinite; }
+    @media (max-width: 768px) {
+  .hero { padding: 40px 0 32px; }
+  .hero-inner { flex-direction: column; gap: 28px; }
+  .hero-right { flex: unset; width: 100%; }
+  .hero-title { font-size: 28px; }
+  .hero-sub { font-size: 14px; }
+  .hero-btns { justify-content: center; }
+ 
+  .stats-bar { flex-wrap: wrap; }
+  .stat { flex: 1 1 50%; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.2); }
+  .stat:nth-child(odd) { border-right: 1px solid rgba(255,255,255,0.2); }
+  .stat-num { font-size: 20px; }
+ 
+  .cat-grid { grid-template-columns: repeat(2, 1fr); }
+  .products-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+ 
+  .ai-steps { grid-template-columns: 1fr; gap: 12px; }
+  .ai-input-row { flex-direction: column; }
+  .ai-select { width: 100%; }
+ 
+  .zelle-box { flex-direction: column; align-items: center; text-align: center; padding: 20px; }
+  .zelle-steps { justify-content: center; }
+ 
+  .section { padding: 36px 0; }
+  .section-alt { padding: 36px 0; }
+  .section-title { font-size: 22px; }
+}
+ 
+@media (max-width: 480px) {
+  .products-grid { grid-template-columns: 1fr; }
+  .cat-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .hero-title { font-size: 24px; }
+  .stats-bar { display: grid; grid-template-columns: repeat(2,1fr); }
+}
+ 
   `]
 })
 export class HomeComponent implements OnInit {
