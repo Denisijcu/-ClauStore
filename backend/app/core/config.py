@@ -1,6 +1,8 @@
 from pydantic import field_validator
 from pydantic_settings import BaseSettings
 from typing import List, Union
+import json
+
 
 class Settings(BaseSettings):
     # App
@@ -25,19 +27,30 @@ class Settings(BaseSettings):
     ZELLE_PHONE: str = ""
     ZELLE_NAME: str = "ClauStore"
 
-    # CORS - Mejorado para evitar el JSONDecodeError
+    # CORS - Versión ultra robusta
     ALLOWED_ORIGINS: List[str] = [
         "http://localhost:4200",
-        "https://claustore.netlify.app/"
+        "http://localhost:3000",
+        "https://claustore.netlify.app"
     ]
 
     @field_validator("ALLOWED_ORIGINS", mode="before")
     @classmethod
-    def parse_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:
+    def parse_allowed_origins(cls, v: Union[str, List[str], None]) -> List[str]:
         if isinstance(v, list):
             return v
-        # Si llega como string (Railway), lo dividimos por coma
-        return [i.strip() for i in v.split(",")]
+        if isinstance(v, str):
+            v = v.strip()
+            if not v:
+                return cls.model_fields["ALLOWED_ORIGINS"].default  # fallback a default
+            if v.startswith("["):
+                try:
+                    return json.loads(v)
+                except:
+                    pass
+            # Separado por comas (formato recomendado para Railway)
+            return [origin.strip() for origin in v.split(",") if origin.strip()]
+        return cls.model_fields["ALLOWED_ORIGINS"].default
 
     # AI (Groq)
     GROQ_API_KEY: str = ""
@@ -45,5 +58,7 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = ".env"
+        extra = "ignore"   # importante
+
 
 settings = Settings()
