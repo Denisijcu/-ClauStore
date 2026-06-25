@@ -106,10 +106,21 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
             raise HTTPException(status_code=400, detail="Cuenta desactivada")
         
         token = create_access_token({"sub": user.email})
-        return {"access_token": token, "token_type": "bearer", "user": user}
-    
+        
+        return {
+            "access_token": token,
+            "token_type": "bearer",
+            "user": {                          # ← serializa manual
+                "id": user.id,
+                "name": user.name,
+                "email": user.email,
+                "phone": user.phone,
+                "is_admin": user.is_admin,
+                "created_at": user.created_at.isoformat()
+            }
+        }
     except HTTPException:
-        raise  # ← re-lanza los 401/400 sin atraparlos
+        raise
     except Exception as e:
         print(f"❌ Login error: {e}")
         raise HTTPException(status_code=500, detail="Error interno del servidor")
