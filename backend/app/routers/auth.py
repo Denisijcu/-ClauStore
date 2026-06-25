@@ -62,25 +62,39 @@ async def register(user_data: UserRegister, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=Token)
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == form_data.username).first()
-    
-    if not user or not verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Email o contraseña incorrectos"
-        )
-    
-    if not user.is_active:
-        raise HTTPException(status_code=400, detail="Account disabled")
-    
-    token = create_access_token({"sub": user.email})
-    
-    return {
-        "access_token": token,
-        "token_type": "bearer",
-        "user": user
-    }
-
+    try:
+        user = db.query(User).filter(User.email == form_data.username).first()
+        
+        if not user or not verify_password(form_data.password, user.hashed_password):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Email o contraseña incorrectos"
+            )
+        
+        if not user.is_active:
+            raise HTTPException(status_code=400, detail="Cuenta desactivada")
+        
+        token = create_access_token({"sub": user.email})
+        
+        # Devolvemos el usuario sin campos sensibles
+        return {
+            "access_token": token,
+            "token_type": "bearer",
+            "user": {
+                "id": user.id,
+                "name": user.name,
+                "email": user.email,
+                "is_admin": user.is_admin,
+                "created_at": user.created_at
+            }
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Error inesperado en login: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail="Error interno del servidor")
 
 @router.get("/me", response_model=UserOut)
 async def get_me(current_user: User = Depends(get_current_user)):
