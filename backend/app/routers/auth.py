@@ -11,6 +11,7 @@ from app.core.database import get_db
 from app.models.models import User
 from app.schemas.schemas import UserRegister, UserOut, Token   # ← Importante
 
+
 router = APIRouter()
 
 # Password hashing

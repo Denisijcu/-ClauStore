@@ -46,3 +46,12 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+import os
+import uvicorn
+
+if __name__ == "__main__":
+    # Railway asigna el puerto en la variable de entorno 'PORT'
+    port = int(os.environ.get("PORT", 8080))
+    # 0.0.0.0 es obligatorio para que Railway pueda entrar al contenedor
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
