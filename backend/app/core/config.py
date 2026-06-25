@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     # CORS - Mejorado para evitar el JSONDecodeError
     ALLOWED_ORIGINS: List[str] = [
         "http://localhost:4200",
-        "https://claustore.netlify.app"
+        "https://claustore.netlify.app/"
     ]
 
     @field_validator("ALLOWED_ORIGINS", mode="before")

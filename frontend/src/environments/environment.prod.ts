@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://your-backend.railway.app/api'
+  apiUrl: 'claustore-production.up.railway.app/api'
 };

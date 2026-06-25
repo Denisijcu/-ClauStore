@@ -8,7 +8,7 @@ import { OrderService } from '../../core/services/api.services';
 
 export { CheckoutComponent };
 
-@Component({ selector: 'app-checkout', standalone: true, imports: [RouterLink, CommonModule, FormsModule],
+@Component({ selector: 'app-checkout', standalone: true, imports: [ CommonModule, FormsModule],
   template: `
     <div style="padding:48px 0;min-height:60vh"><div class="container">
       <h1 class="page-title">Checkout<span class="dot">.</span></h1>
