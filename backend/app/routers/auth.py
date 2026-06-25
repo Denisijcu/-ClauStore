@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.database import get_db
 from app.models.models import User
-from app.schemas.schemas import UserRegister, UserOut, Token
+from app.schemas.schemas import UserOut, Token
 
 router = APIRouter()
 
@@ -41,6 +41,36 @@ def decode_token(token: str):
         return None
 
 
+# ==================== DEPENDENCIES ====================
+async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = decode_token(token)
+        if payload is None:
+            raise credentials_exception
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+    
+    user = db.query(User).filter(User.email == email).first()
+    if user is None:
+        raise credentials_exception
+    return user
+
+
+async def get_current_admin(current_user: User = Depends(get_current_user)):
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return current_user
+
+
+# ==================== ROUTES ====================
 @router.post("/register", response_model=UserOut)
 async def register(user_data: UserRegister, db: Session = Depends(get_db)):
     existing = db.query(User).filter(User.email == user_data.email).first()
@@ -51,7 +81,7 @@ async def register(user_data: UserRegister, db: Session = Depends(get_db)):
         name=user_data.name,
         email=user_data.email,
         hashed_password=get_password_hash(user_data.password),
-        phone=user_data.phone,
+        phone=getattr(user_data, 'phone', None),
         is_active=True
     )
     db.add(user)
@@ -76,53 +106,16 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
         
         token = create_access_token({"sub": user.email})
         
-        # Devolvemos el usuario sin campos sensibles
         return {
             "access_token": token,
             "token_type": "bearer",
-            "user": {
-                "id": user.id,
-                "name": user.name,
-                "email": user.email,
-                "is_admin": user.is_admin,
-                "created_at": user.created_at
-            }
+            "user": user
         }
-    except HTTPException:
-        raise
     except Exception as e:
-        print(f"❌ Error inesperado en login: {e}")
-        import traceback
-        traceback.print_exc()
+        print(f"❌ Error en login: {e}")
         raise HTTPException(status_code=500, detail="Error interno del servidor")
+
 
 @router.get("/me", response_model=UserOut)
 async def get_me(current_user: User = Depends(get_current_user)):
-    return current_user
-
-
-# Dependency to get current user
-async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    payload = decode_token(token)
-    if payload is None:
-        raise credentials_exception
-    
-    email: str = payload.get("sub")
-    if email is None:
-        raise credentials_exception
-    
-    user = db.query(User).filter(User.email == email).first()
-    if user is None:
-        raise credentials_exception
-    return user
-
-
-async def get_current_admin(current_user: User = Depends(get_current_user)):
-    if not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Admin access required")
     return current_user
