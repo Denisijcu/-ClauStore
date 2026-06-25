@@ -15,7 +15,8 @@ from app.schemas.schemas import UserRegister, UserOut, Token   # ← Importante
 router = APIRouter()
 
 # Password hashing
-pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
+#pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
@@ -90,7 +91,6 @@ async def register(user_data: UserRegister, db: Session = Depends(get_db)):
     db.refresh(user)
     return user
 
-
 @router.post("/login", response_model=Token)
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     try:
@@ -106,14 +106,12 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
             raise HTTPException(status_code=400, detail="Cuenta desactivada")
         
         token = create_access_token({"sub": user.email})
-        
-        return {
-            "access_token": token,
-            "token_type": "bearer",
-            "user": user
-        }
+        return {"access_token": token, "token_type": "bearer", "user": user}
+    
+    except HTTPException:
+        raise  # ← re-lanza los 401/400 sin atraparlos
     except Exception as e:
-        print(f"❌ Error en login: {e}")
+        print(f"❌ Login error: {e}")
         raise HTTPException(status_code=500, detail="Error interno del servidor")
 
 
