@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.database import get_db
 from app.models.models import User
-from app.schemas.schemas import UserOut, Token
+from app.schemas.schemas import UserRegister, UserOut, Token   # ← Importante
 
 router = APIRouter()
 
